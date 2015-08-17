@@ -127,7 +127,7 @@ errorMessages = {
   default: 'Введите значение'
 };
 
-showError = function(node, message) {
+showErrorTooltip = function(node, message) {
   var nextNode = node.nextElementSibling,
     messageNode;
 
@@ -144,6 +144,12 @@ showError = function(node, message) {
   }
 };
 
+showError = function(input, showErrors, message) {
+  decorateInput(input);
+  if (showErrors) {
+    showErrorTooltip(input, message);
+  }
+};
 
 decorateInput = function(input) {
   input.classList.add('error');
@@ -151,11 +157,8 @@ decorateInput = function(input) {
 
 validationTypes = {
   phone: function(input, value, type, showErrors) {
-    if (!value) {
-      decorateInput(input);
-      if (showErrors) {
-        showError(input, errorMessages[type]);
-      }
+    if (!value) { // will be changed to something special for this type of input
+      showError(input, showErrors, errorMessages[type]);
       return false;
     }
     return true;
@@ -165,10 +168,7 @@ validationTypes = {
     var pattern = /^([a-z0-9_\.-])+@[a-z0-9-]+\.([a-z]{2,4}\.)?[a-z]{2,4}$/i;
 
     if (!pattern.test(value)) {
-      decorateInput(input);
-      if (showErrors) {
-        showError(input, errorMessages[type]);
-      }
+      showError(input, showErrors, errorMessages[type]);
       return false;
     }
     return true;
@@ -176,10 +176,7 @@ validationTypes = {
 
   name: function(input, value, type, showErrors) {
     if (!value) {
-      decorateInput(input);
-      if (showErrors) {
-        showError(input, errorMessages[type]);
-      }
+      showError(input, showErrors, errorMessages[type]);
       return false;
     }
     return true;
@@ -187,10 +184,7 @@ validationTypes = {
 
   lastname: function(input, value, type, showErrors) {
     if (!value) {
-      decorateInput(input);
-      if (showErrors) {
-        showError(input, errorMessages[type]);
-      }
+      showError(input, showErrors, errorMessages[type]);
       return false;
     }
     return true;
@@ -198,10 +192,7 @@ validationTypes = {
 
   default: function(input, value, showErrors) {
     if (!value) {
-      decorateInput(input);
-      if (showErrors) {
-        showError(input, errorMessages.default);
-      }
+      showError(input, showErrors, errorMessages.default);
       return false;
     }
     return true;
