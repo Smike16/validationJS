@@ -1,4 +1,28 @@
-var validation, validationTypes, decorateInput;
+var createNode,
+  validation,
+  validationTypes,
+  decorateInput,
+  errorMessages,
+  showError;
+
+createNode = function(tag, attributes, content) {
+  var node = document.createElement(tag),
+    attribute;
+
+  for (attribute in attributes) {
+    if (attributes.hasOwnProperty(attribute)) {
+      node.setAttribute(attribute, attributes[attribute]);
+    }
+  }
+
+  if (typeof content === 'string') {
+    node.textContent = content;
+  } else {
+    node.appendChild(content);
+  }
+
+  return node;
+};
 
 validation = {
   state: {
@@ -71,10 +95,13 @@ validation = {
 
         if (currentType.required) {
           currentType.node.classList.remove('error');
+          if (currentType.node.nextElementSibling) {
+            currentType.node.nextElementSibling.classList.add('error-message--hidden');
+          }
           if (validationTypes[input]) {
-            validated = validationTypes[input](currentType.node, data[input], input);
+            validated = validationTypes[input](currentType.node, data[input], input, config.showErrors);
           } else {
-            validated = validationTypes.default(currentType.node, data[input], input);
+            validated = validationTypes.default(currentType.node, data[input], config.showErrors);
           }
           if (this.state.validated !== false) {
             this.state.validated = validated;
@@ -92,48 +119,89 @@ validation = {
   }
 };
 
+errorMessages = {
+  phone: 'Неверный формат телефона',
+  email: 'Неверный формат почты',
+  name: 'Введите имя',
+  lastname: 'Введите фамилию',
+  default: 'Введите значение'
+};
+
+showError = function(node, message) {
+  var nextNode = node.nextElementSibling,
+    messageNode;
+
+  if (nextNode && nextNode.classList.contains('error-message')) {
+    if (nextNode.textContent !== message) {
+      nextNode.textContent = message;
+    }
+    nextNode.classList.remove('error-message--hidden');
+  } else {
+    messageNode = createNode('span', {
+      class: 'error-message'
+    }, message);
+    node.parentNode.appendChild(messageNode);
+  }
+};
+
+
 decorateInput = function(input) {
   input.classList.add('error');
 };
 
 validationTypes = {
-  phone: function(input, value, key) {
+  phone: function(input, value, type, showErrors) {
     if (!value) {
       decorateInput(input);
+      if (showErrors) {
+        showError(input, errorMessages[type]);
+      }
       return false;
     }
     return true;
   },
 
-  email: function(input, value, key) {
+  email: function(input, value, type, showErrors) {
     var pattern = /^([a-z0-9_\.-])+@[a-z0-9-]+\.([a-z]{2,4}\.)?[a-z]{2,4}$/i;
 
     if (!pattern.test(value)) {
       decorateInput(input);
+      if (showErrors) {
+        showError(input, errorMessages[type]);
+      }
       return false;
     }
     return true;
   },
 
-  name: function(input, value, key) {
+  name: function(input, value, type, showErrors) {
     if (!value) {
       decorateInput(input);
+      if (showErrors) {
+        showError(input, errorMessages[type]);
+      }
       return false;
     }
     return true;
   },
 
-  lastname: function(input, value, key) {
+  lastname: function(input, value, type, showErrors) {
     if (!value) {
       decorateInput(input);
+      if (showErrors) {
+        showError(input, errorMessages[type]);
+      }
       return false;
     }
     return true;
   },
 
-  default: function(input, value, key) {
+  default: function(input, value, showErrors) {
     if (!value) {
       decorateInput(input);
+      if (showErrors) {
+        showError(input, errorMessages.default);
+      }
       return false;
     }
     return true;
@@ -143,5 +211,6 @@ validationTypes = {
 validation.init({
   formSelector: '.form',
   url: 'some url here',
-  inputTypes: ['phone', 'email', 'name', 'lastname', 'description']
+  inputTypes: ['phone', 'email', 'name', 'lastname', 'description'],
+  showErrors: true
 });
