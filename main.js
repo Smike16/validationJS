@@ -18,7 +18,9 @@ createNode = function(tag, attributes, content) {
   if (typeof content === 'string') {
     node.textContent = content;
   } else {
-    node.appendChild(content);
+    content.map(function(contentItem) {
+      node.appendChild(contentItem);
+    });
   }
 
   return node;
@@ -51,26 +53,25 @@ validation = {
 
   findFields: function(selectors, config) {
     var fields = {},
+      mapArray = Array.prototype.map.bind(selectors.node),
       form, i;
 
-    for (i = 0; i < selectors.node.length; i += 1) {
-      fields[i] = {};
-
-      form = selectors.node[i];
+    mapArray(function(form, index) {
+      fields[index] = {};
 
       config.inputTypes.map(function(input) {
         var node = form.querySelector('[name=' + input + ']');
 
         if (node) {
-          currentInput = fields[i][input] = {};
+          currentInput = fields[index][input] = {};
           currentInput.node = node;
           if (currentInput.node.classList.contains('required')) {
             currentInput.required = true;
           }
         }
       });
-      this.addListener(form, fields[i], config);
-    }
+      this.addListener(form, fields[index], config);
+    }.bind(this));
   },
 
   addListener: function(form, fields, config) {
